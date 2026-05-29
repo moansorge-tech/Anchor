@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>Anchor — ADHD Companion</title>
+<meta name="theme-color" content="#0e1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Anchor">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116;--panel:#171b22;--panel-2:#1e242d;--line:#2a313c;
+    --ink:#eef2f7;--muted:#8b96a6;
+    --good:#5ad19a;--good-dim:#1d3d31;--bad:#f0846b;--bad-dim:#41281f;
+    --accent:#ffb454;--accent-2:#7aa7ff;
+    --shadow:0 10px 40px rgba(0,0,0,.45);--r:18px;
+    --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;min-height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(255,180,84,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(122,167,255,.10), transparent 55%),
+      var(--bg);
+    padding:calc(var(--safe-top) + 8px) 0 calc(96px + var(--safe-bot));
+    -webkit-user-select:none;user-select:none;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:14px 18px}
+  input,textarea{-webkit-user-select:text;user-select:text}
+
+  header.app{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,var(--accent),#ff7e5f);display:grid;place-items:center;font-size:20px;box-shadow:var(--shadow)}
+  .brand h1{font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:-.3px}
+  .brand p{color:var(--muted);font-size:12px;margin-top:1px}
+  .lvlbadge{text-align:right;font-size:12px;color:var(--muted)}
+  .lvlbadge b{display:block;font-family:'Fraunces',serif;color:var(--accent);font-size:18px;font-weight:600}
+  .xpbar{width:70px;height:5px;background:var(--panel-2);border-radius:4px;margin-top:4px;overflow:hidden}
+  .xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#ff7e5f);width:0}
+
+  section{display:none;animation:fade .3s ease}
+  section.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-bottom:3px}
+  .card .sub{color:var(--muted);font-size:13px;margin-bottom:15px;line-height:1.5}
+  .section-title{display:flex;align-items:center;justify-content:space-between;margin:18px 0 14px}
+  .section-title h2{font-family:'Fraunces',serif;font-size:21px;font-weight:600}
+
+  .habit{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line);margin-bottom:10px;transition:.15s}
+  .habit:active{transform:scale(.99)}
+  .habit .emoji{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:21px;flex-shrink:0;background:#11151b}
+  .habit .info{flex:1;min-width:0}
+  .habit .name{font-weight:600;font-size:15px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .habit .streak{font-size:12px;color:var(--muted);margin-top:2px}
+  .tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:20px}
+  .tag.good{background:var(--good-dim);color:var(--good)}
+  .tag.bad{background:var(--bad-dim);color:var(--bad)}
+  .check{width:46px;height:46px;border-radius:50%;border:2px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:.2s;font-size:20px;color:transparent}
+  .check.done.good{background:var(--good);border-color:var(--good);color:#06140d;transform:scale(1.05)}
+  .check.done.bad{background:var(--bad);border-color:var(--bad);color:#1c0a05}
+  .del{background:transparent;border:0;color:var(--muted);font-size:17px;cursor:pointer;padding:6px;opacity:.45}
+  .del:active{opacity:1;color:var(--bad)}
+
+  input,select,textarea{font-family:inherit;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:11px;padding:11px 13px;font-size:15px;width:100%}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent-2)}
+  .btn{font-family:inherit;font-weight:600;font-size:14px;border:0;border-radius:11px;padding:12px 16px;cursor:pointer;background:var(--accent);color:#1a1206;transition:.15s;white-space:nowrap}
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
+  .btn.full{width:100%}
+  .seg{display:flex;gap:6px;margin-top:10px}
+  .seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);font-family:inherit;font-weight:600;font-size:13px;cursor:pointer}
+  .seg button.sel.good{background:var(--good-dim);color:var(--good);border-color:var(--good)}
+  .seg button.sel.bad{background:var(--bad-dim);color:var(--bad);border-color:var(--bad)}
+  .emoji-pick{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .emoji-pick button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);font-size:18px;cursor:pointer}
+  .emoji-pick button.sel{border-color:var(--accent);background:#2a2113}
+
+  .chart-wrap{position:relative;height:170px;margin:8px 0 4px}
+  svg{width:100%;height:100%;overflow:visible}
+  .chart-legend{display:flex;gap:16px;justify-content:center;font-size:12px;color:var(--muted);margin-top:8px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+  .stat .n{font-family:'Fraunces',serif;font-size:25px;font-weight:600}
+  .stat .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+  .stat .n.good{color:var(--good)}.stat .n.bad{color:var(--bad)}.stat .n.acc{color:var(--accent)}
+  .heat{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-top:6px}
+  .heat .cell{aspect-ratio:1;border-radius:4px;background:#1b2129;border:1px solid #232a33}
+  .heat .cell.l1{background:#264a3a}.heat .cell.l2{background:#357a5b}.heat .cell.l3{background:#5ad19a}
+
+  .timer-display{font-family:'Fraunces',serif;font-size:60px;font-weight:600;text-align:center;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+  .ring-wrap{position:relative;width:200px;margin:0 auto}
+  .ring-wrap .timer-display{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);font-size:46px}
+  .micro-steps{margin-top:14px}
+  .step{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line);margin-bottom:8px;font-size:14px;line-height:1.4}
+  .step .sc{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:grid;place-items:center;font-size:14px;color:transparent}
+  .step.done .sc{background:var(--good);border-color:var(--good);color:#06140d}
+  .step.done span{text-decoration:line-through;color:var(--muted)}
+  .ritual{background:linear-gradient(140deg,#1d242e,#161b22);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:10px;cursor:pointer}
+  .ritual h3{font-size:15px;font-weight:600;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+  .ritual p{font-size:13.5px;color:var(--muted);line-height:1.55}
+  .pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .pill{background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:13px;cursor:pointer;transition:.15s}
+  .pill:active{transform:scale(.96);border-color:var(--accent)}
+  .pill.on{background:#2a2113;border-color:var(--accent);color:var(--accent)}
+
+  .empty{text-align:center;color:var(--muted);padding:24px 10px;font-size:13.5px;line-height:1.5}
+  .feature{display:flex;gap:13px;padding:14px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line);margin-bottom:10px}
+  .feature .fic{font-size:22px;flex-shrink:0}
+  .feature h3{font-size:14.5px;font-weight:600;margin-bottom:3px}
+  .feature p{font-size:13px;color:var(--muted);line-height:1.5}
+  .loading{text-align:center;color:var(--muted);padding:14px;font-size:13px}
+
+  /* mood faces */
+  .mood-row{display:flex;justify-content:space-between;gap:6px}
+  .mood-row button{flex:1;aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);font-size:24px;cursor:pointer;transition:.15s}
+  .mood-row button.sel{border-color:var(--accent);background:#2a2113;transform:scale(1.06)}
+  .slider-row{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .slider-row label{font-size:13px;color:var(--muted);width:64px;flex-shrink:0}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:var(--panel-2);padding:0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border:0;border-radius:50%;background:var(--accent);cursor:pointer}
+
+  /* capture */
+  .cap-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;background:var(--panel-2);border:1px solid var(--line);margin-bottom:8px;font-size:14px}
+  .cap-item .x{margin-left:auto;color:var(--muted);cursor:pointer;font-size:16px;opacity:.5}
+  .cap-item .x:active{opacity:1;color:var(--bad)}
+
+  /* routine */
+  .rstep{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;background:var(--panel-2);border:1px solid var(--line);margin-bottom:8px}
+  .rstep .sc{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:grid;place-items:center;font-size:13px;color:transparent}
+  .rstep.done .sc{background:var(--good);border-color:var(--good);color:#06140d}
+  .rstep.done span{text-decoration:line-through;color:var(--muted)}
+  .rstep .x{margin-left:auto;color:var(--muted);cursor:pointer;opacity:.5}
+
+  .toast{position:fixed;left:50%;bottom:calc(96px + var(--safe-bot));transform:translateX(-50%) translateY(80px);background:var(--ink);color:#0e1116;font-weight:600;font-size:13.5px;padding:11px 20px;border-radius:30px;z-index:100;transition:.3s;box-shadow:var(--shadow);opacity:0;max-width:90vw;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+  /* bottom tab bar */
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(20,24,30,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(8px + var(--safe-bot));gap:2px}
+  .tab{flex:1;border:0;background:transparent;color:var(--muted);font-family:inherit;font-size:10.5px;font-weight:600;padding:5px 2px;border-radius:10px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .tab .ic{font-size:18px}
+  .tab.active{color:var(--accent)}
+
+  .focus-overlay{position:fixed;inset:0;z-index:200;background:rgba(8,10,13,.97);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+  .focus-overlay.show{display:flex}
+  .focus-overlay .timer-display{font-size:72px}
+  .focus-overlay p{color:var(--muted);font-size:14px;margin:8px 0 26px;max-width:300px;line-height:1.5}
+
+  .keyhint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+  a{color:var(--accent-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="brand">
+      <div class="logo">⚓</div>
+      <div><h1>Anchor</h1><p id="tagline">Your ADHD companion</p></div>
+    </div>
+    <div class="lvlbadge">
+      <span>Level</span><b id="lvlNum">1</b>
+      <div class="xpbar"><i id="xpFill"></i></div>
+    </div>
+  </header>
+
+  <!-- TODAY -->
+  <section id="today" class="active">
+    <div class="section-title"><h2>Today</h2><span id="todayDate" style="color:var(--muted);font-size:13px"></span></div>
+
+    <div class="card">
+      <h2>Quick capture</h2>
+      <div class="sub">Dump any thought before it vanishes. Sort it later.</div>
+      <div style="display:flex;gap:8px"><input id="capInput" placeholder="Brain dump…" maxlength="120"><button class="btn" id="capAdd">＋</button></div>
+      <div id="capList" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Habit Tracker</h2>
+      <div class="sub">Tap the circle to log it. Green = building up, orange = cutting down.</div>
+      <div id="habitList"></div>
+    </div>
+
+    <div class="card">
+      <h2>Add a habit</h2>
+      <input id="newHabit" placeholder="e.g. Took meds, 10-min walk…" maxlength="40">
+      <div class="seg" id="newType">
+        <button data-t="good" class="sel good">＋ Build up</button>
+        <button data-t="bad">－ Cut down</button>
+      </div>
+      <div class="emoji-pick" id="emojiPick"></div>
+      <button class="btn full" style="margin-top:12px" id="addHabit">Add habit</button>
+    </div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section id="insights">
+    <div class="section-title"><h2>Insights</h2></div>
+    <div class="stats-grid">
+      <div class="stat"><div class="n good" id="sGood">0</div><div class="l">Good today</div></div>
+      <div class="stat"><div class="n acc" id="sStreak">0</div><div class="l">Best streak</div></div>
+      <div class="stat"><div class="n" id="sRate">0%</div><div class="l">7-day rate</div></div>
+    </div>
+    <div class="card">
+      <h2>Last 7 days</h2>
+      <div class="sub">Good habits vs. slip-ups, per day.</div>
+      <div class="chart-wrap"><svg id="chart" viewBox="0 0 320 170" preserveAspectRatio="none"></svg></div>
+      <div class="chart-legend">
+        <span><span class="dot" style="background:var(--good)"></span>Good</span>
+        <span><span class="dot" style="background:var(--bad)"></span>Slip-ups</span>
+        <span><span class="dot" style="background:var(--accent-2)"></span>Mood</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Consistency map</h2>
+      <div class="sub">Last 14 days — darker means more good habits logged.</div>
+      <div class="heat" id="heat"></div>
+    </div>
+    <div class="card">
+      <h2>Mood &amp; energy patterns</h2>
+      <div class="sub" id="moodSummary">No check-ins yet — log how you feel on the Today tab… actually, on Check-in.</div>
+    </div>
+  </section>
+
+  <!-- START -->
+  <section id="start">
+    <div class="section-title"><h2>Get Started</h2></div>
+    <div class="card">
+      <h2>The 5-minute start</h2>
+      <div class="sub">The hardest part is starting. Commit to just 5 minutes — you can stop after, but you usually won't.</div>
+      <div class="ring-wrap">
+        <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="#2a313c" stroke-width="10"/><circle id="ring" cx="100" cy="100" r="88" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" transform="rotate(-90 100 100)"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb454"/><stop offset="1" stop-color="#ff7e5f"/></linearGradient></defs></svg>
+        <div class="timer-display" id="timer">05:00</div>
+      </div>
+      <div class="seg" style="margin-top:10px">
+        <button class="btn" id="timerStart" style="flex:1">Start</button>
+        <button class="btn ghost" id="timerReset" style="flex:1">Reset</button>
+        <button class="btn ghost" id="focusMode" style="flex:1">Focus mode</button>
+      </div>
+      <div class="pill-row">
+        <span class="pill" data-min="2">2 min</span>
+        <span class="pill on" data-min="5">5 min</span>
+        <span class="pill" data-min="10">10 min</span>
+        <span class="pill" data-min="25">25 min</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Break it down</h2>
+      <div class="sub">Type the task that feels too big. We'll chop it so step one is obvious and tiny.</div>
+      <input id="taskInput" placeholder="e.g. Do my taxes, clean the kitchen…">
+      <button class="btn full" style="margin-top:10px" id="breakBtn">Break it into steps</button>
+      <div class="micro-steps" id="steps"></div>
+    </div>
+
+    <div class="card">
+      <h2>Unstick yourself</h2>
+      <div class="sub">Tap one when you're frozen.</div>
+      <div class="ritual" id="bodyDouble"><h3>🎧 Body double</h3><p>Start a focus video or call a friend and work "next to" them. Another person's presence makes starting dramatically easier for ADHD brains.</p></div>
+      <div class="ritual" id="lowerBarCard"><h3>🪨 Lower the bar</h3><p id="lowerBar">Do the task badly on purpose. A messy draft beats a perfect nothing. Tap for another nudge.</p></div>
+    </div>
+  </section>
+
+  <!-- CHECK-IN -->
+  <section id="checkin">
+    <div class="section-title"><h2>Daily Check-in</h2></div>
+    <div class="card">
+      <h2>How's your mood?</h2>
+      <div class="sub">One tap. Spotting patterns between how you feel and what you do is powerful.</div>
+      <div class="mood-row" id="moodRow">
+        <button data-m="1">😞</button><button data-m="2">😕</button><button data-m="3">😐</button><button data-m="4">🙂</button><button data-m="5">😄</button>
+      </div>
+      <div class="slider-row"><label>Energy</label><input type="range" id="energy" min="1" max="5" value="3"><span id="energyVal">3</span></div>
+      <div class="slider-row"><label>Focus</label><input type="range" id="focus" min="1" max="5" value="3"><span id="focusVal">3</span></div>
+      <div class="slider-row"><label>Sleep (h)</label><input type="range" id="sleep" min="0" max="12" step="0.5" value="7"><span id="sleepVal">7</span></div>
+      <div class="seg" style="margin-top:14px">
+        <button class="btn" id="medsYes">💊 Took meds</button>
+        <button class="btn ghost" id="medsNo">No meds today</button>
+      </div>
+      <button class="btn full" style="margin-top:12px" id="saveCheckin">Save check-in</button>
+      <div id="checkinStatus" class="keyhint" style="text-align:center"></div>
+    </div>
+
+    <div class="card">
+      <h2>Routine builder</h2>
+      <div class="sub">Build a morning/evening routine so transitions need zero decisions. Check steps off as you go.</div>
+      <div class="seg" id="routineTabs">
+        <button data-r="morning" class="sel good" style="color:var(--accent);border-color:var(--accent);background:#2a2113">🌅 Morning</button>
+        <button data-r="evening">🌙 Evening</button>
+      </div>
+      <div id="routineSteps" style="margin-top:12px"></div>
+      <div style="display:flex;gap:8px;margin-top:8px"><input id="routineInput" placeholder="Add a step…" maxlength="50"><button class="btn" id="routineAdd">＋</button></div>
+    </div>
+  </section>
+
+  <!-- MORE -->
+  <section id="more">
+    <div class="section-title"><h2>More</h2></div>
+
+    <div class="card">
+      <h2>🤖 AI coach</h2>
+      <div class="sub">Tell it what's blocking you. Built for ADHD — concrete, kind, no lectures.</div>
+      <textarea id="coachInput" rows="3" placeholder="e.g. I have to email my professor but I keep putting it off…"></textarea>
+      <button class="btn full" style="margin-top:10px" id="coachBtn">Ask the coach</button>
+      <div id="coachOut" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ AI settings</h2>
+      <div class="sub">The "Break it down" and "AI coach" features need your own free Anthropic API key when the app runs on your phone. Paste it here — it's stored only on this device and never sent anywhere except Anthropic.</div>
+      <input id="apiKey" type="password" placeholder="sk-ant-… (optional)" autocomplete="off">
+      <button class="btn full ghost" style="margin-top:10px" id="saveKey">Save key on this device</button>
+      <div class="keyhint">Get a key at <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a> → API Keys. Without a key, these two features show offline fallback tips and everything else works normally.</div>
+    </div>
+
+    <div class="card">
+      <h2>Your data</h2>
+      <div class="sub">Everything lives on this device. Export a backup or wipe it.</div>
+      <div class="seg">
+        <button class="btn ghost" id="exportBtn">⬇ Export backup</button>
+        <button class="btn ghost" id="importBtn">⬆ Import</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+      <button class="btn full ghost" style="margin-top:8px;color:var(--bad)" id="wipeBtn">Reset everything</button>
+    </div>
+
+    <div class="card">
+      <h2>What's inside</h2>
+      <div class="feature"><div class="fic">✅</div><div><h3>Habit tracker + insights</h3><p>One-tap good/negative logging, streaks, charts, and a consistency map.</p></div></div>
+      <div class="feature"><div class="fic">🚀</div><div><h3>Task initiation</h3><p>5-minute starter, AI task breakdown, focus mode, and unsticking rituals.</p></div></div>
+      <div class="feature"><div class="fic">⚡</div><div><h3>Quick capture</h3><p>Instant brain-dump box so thoughts don't slip away.</p></div></div>
+      <div class="feature"><div class="fic">😶‍🌫️</div><div><h3>Mood, energy &amp; sleep</h3><p>Daily check-ins that surface patterns over time.</p></div></div>
+      <div class="feature"><div class="fic">🎮</div><div><h3>Points &amp; levels</h3><p>Earn XP for good habits and routines, with surprise bonuses.</p></div></div>
+      <div class="feature"><div class="fic">🌅</div><div><h3>Routine builder</h3><p>Visual morning/evening routines to ease transitions.</p></div></div>
+      <div class="feature"><div class="fic">🧱</div><div><h3>Focus mode</h3><p>A full-screen lock that adds friction to bailing mid-session.</p></div></div>
+    </div>
+    <div class="keyhint" style="text-align:center;padding-bottom:10px">Anchor v1 · a personal tool, not medical advice</div>
+  </section>
+</div>
+
+<!-- focus overlay -->
+<div class="focus-overlay" id="focusOverlay">
+  <div class="timer-display" id="focusTimer">25:00</div>
+  <p>Stay here. Leaving early is the ADHD brain seeking novelty — that's the moment that matters. One thing, right now.</p>
+  <button class="btn" id="focusExit">I'm done focusing</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="today"><span class="ic">✓</span>Today</button>
+  <button class="tab" data-tab="insights"><span class="ic">📈</span>Insights</button>
+  <button class="tab" data-tab="start"><span class="ic">🚀</span>Start</button>
+  <button class="tab" data-tab="checkin"><span class="ic">💭</span>Check-in</button>
+  <button class="tab" data-tab="more"><span class="ic">✦</span>More</button>
+</nav>
+
+<script>
+"use strict";
+// ===== inlined, pre-tested core logic =====
+const DAY=86400000;
+const dateKey=d=>new Date(d).toISOString().slice(0,10);
+function lastNDays(n,from=new Date()){const out=[];const t=new Date(from);for(let i=n-1;i>=0;i--)out.push(new Date(t.getTime()-i*DAY));return out;}
+function streak(logs,id,from=new Date()){let s=0;const t=new Date(from);for(let i=0;i<366;i++){const k=dateKey(t.getTime()-i*DAY);const done=logs[k]&&logs[k][id];if(done)s++;else if(i===0)continue;else break;}return s;}
+function completionRate(habits,logs,days=7,from=new Date()){const good=habits.filter(h=>h.type==='good');if(!good.length)return 0;let p=0,a=0;for(const d of lastNDays(days,from)){const k=dateKey(d);for(const h of good){p++;if(logs[k]&&logs[k][h.id])a++;}}return p?Math.round(a/p*100):0;}
+function chartData(habits,logs,from=new Date()){return lastNDays(7,from).map(d=>{const k=dateKey(d);let g=0,b=0;for(const h of habits){if(logs[k]&&logs[k][h.id])(h.type==='good'?g++:b++);}return{date:d,good:g,bad:b};});}
+function levelFromPoints(p){const level=Math.floor(Math.sqrt(p/50))+1;const cur=50*(level-1)*(level-1);const next=50*level*level;const into=p-cur;const span=next-cur;return{level,into,span,pct:span?Math.round(into/span*100):0};}
+function moodAverage(moods,days=7,from=new Date()){const keys=lastNDays(days,from).map(dateKey);const vals=keys.map(k=>moods[k]).filter(m=>m&&typeof m.mood==='number').map(m=>m.mood);if(!vals.length)return null;return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10;}
+const POINTS_PER_GOOD=10, ROUTINE_BONUS=15;
+
+// ===== state =====
+const EMOJIS=['✅','💊','🚶','💧','🛏️','📚','🏃','🧘','🪥','🍎','📱','🍔','🚬','😴','🎯','✍️','🧹','☀️','💪','🎧'];
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const todayKey=()=>dateKey(new Date());
+let state={habits:[],logs:{},points:0,captures:[],moods:{},routines:{morning:[],evening:[]},apiKey:''};
+let newEmoji='✅',newT='good',curRoutine='morning',pendingMeds=null;
+
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+// ---- persistence (storage API w/ localStorage fallback) ----
+async function save(){
+  const json=JSON.stringify(state);
+  try{ if(window.storage&&window.storage.set){await window.storage.set('anchor-state',json);} }catch(e){}
+  try{ localStorage.setItem('anchor-state',json); }catch(e){}
+}
+async function load(){
+  let raw=null;
+  try{ if(window.storage&&window.storage.get){const r=await window.storage.get('anchor-state');if(r&&r.value)raw=r.value;} }catch(e){}
+  if(!raw){ try{ raw=localStorage.getItem('anchor-state'); }catch(e){} }
+  if(raw){ try{ state=Object.assign(state,JSON.parse(raw)); }catch(e){} }
+  if(!state.habits.length){
+    state.habits=[
+      {id:'h1',name:'Took meds',emoji:'💊',type:'good'},
+      {id:'h2',name:'Moved my body',emoji:'🚶',type:'good'},
+      {id:'h3',name:'Doomscrolling',emoji:'📱',type:'bad'}
+    ];
+  }
+  if(!state.routines)state.routines={morning:[],evening:[]};
+  if(!state.routines.morning.length&&!state.routines.evening.length){
+    state.routines.morning=[{t:'Drink a glass of water',done:false},{t:'Take meds',done:false},{t:'Make the bed',done:false}];
+    state.routines.evening=[{t:'Phone on charger across the room',done:false},{t:'Lay out tomorrow\'s clothes',done:false}];
+  }
+}
+
+// ---- points / level ----
+function addPoints(n,msg){
+  state.points=(state.points||0)+n;
+  const lv=levelFromPoints(state.points);
+  $('#lvlNum').textContent=lv.level;
+  $('#xpFill').style.width=lv.pct+'%';
+  if(msg)toast(msg);
+  if(state.points%50===0)setTimeout(()=>toast('✨ Surprise bonus — you hit '+state.points+' XP!'),900);
+}
+function refreshLevel(){const lv=levelFromPoints(state.points||0);$('#lvlNum').textContent=lv.level;$('#xpFill').style.width=lv.pct+'%';}
+
+// ---- habits ----
+function renderHabits(){
+  const list=$('#habitList');const tk=todayKey();
+  if(!state.habits.length){list.innerHTML='<div class="empty">No habits yet — add one below 👇</div>';return;}
+  list.innerHTML=state.habits.map(h=>{
+    const done=state.logs[tk]&&state.logs[tk][h.id];
+    const st=streak(state.logs,h.id);
+    return `<div class="habit">
+      <div class="emoji">${h.emoji}</div>
+      <div class="info">
+        <div class="name">${escapeHtml(h.name)} <span class="tag ${h.type}">${h.type==='good'?'build':'cut'}</span></div>
+        <div class="streak">🔥 ${st} day${st===1?'':'s'} ${h.type==='bad'?'avoided':'streak'}</div>
+      </div>
+      <button class="del" data-del="${h.id}">✕</button>
+      <button class="check ${done?'done '+h.type:''}" data-check="${h.id}">${done?'✓':''}</button>
+    </div>`;
+  }).join('');
+}
+function toggle(id){
+  const tk=todayKey();
+  if(!state.logs[tk])state.logs[tk]={};
+  const h=state.habits.find(x=>x.id===id);
+  if(state.logs[tk][id]){delete state.logs[tk][id];}
+  else{
+    state.logs[tk][id]=true;
+    if(h&&h.type==='good')addPoints(POINTS_PER_GOOD,'Nice — +10 XP 🔥');
+    else toast('Logged. No shame, just data.');
+  }
+  save();renderHabits();
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+// ---- insights ----
+function renderInsights(){
+  const tk=todayKey();
+  let goodToday=0,best=0;
+  state.habits.forEach(h=>{if(h.type==='good'&&state.logs[tk]&&state.logs[tk][h.id])goodToday++;best=Math.max(best,streak(state.logs,h.id));});
+  $('#sGood').textContent=goodToday;
+  $('#sStreak').textContent=best;
+  $('#sRate').textContent=completionRate(state.habits,state.logs,7)+'%';
+
+  const data=chartData(state.habits,state.logs);
+  const maxV=Math.max(3,...data.map(x=>Math.max(x.good,x.bad)));
+  const W=320,H=170,pad=22,bw=(W-pad*2)/7;
+  const fmtDay=d=>d.toLocaleDateString('en-US',{weekday:'short'});
+  function line(key,color){
+    const pts=data.map((x,i)=>[pad+bw*i+bw/2, H-pad-(x[key]/maxV)*(H-pad*2)]);
+    const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const dots=pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="${color}"/>`).join('');
+    return `<path d="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+  }
+  // mood line (scaled 1..5 to chart). Build path only from valid points.
+  const moodPts=lastNDays(7).map((d,i)=>{const k=dateKey(d);const m=state.moods[k];if(!m||typeof m.mood!=='number')return null;return[pad+bw*i+bw/2,H-pad-((m.mood-1)/4)*(H-pad*2)];}).filter(Boolean);
+  let moodPath='';
+  if(moodPts.length){
+    const dAttr=moodPts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    moodPath=`<path d="${dAttr}" fill="none" stroke="#7aa7ff" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"/>`+moodPts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="#7aa7ff"/>`).join('');
+  }
+  const labels=data.map((x,i)=>`<text x="${(pad+bw*i+bw/2).toFixed(1)}" y="${H-6}" fill="#8b96a6" font-size="9" text-anchor="middle">${fmtDay(x.date)}</text>`).join('');
+  const grid=[0,.5,1].map(f=>`<line x1="${pad}" y1="${(H-pad-f*(H-pad*2)).toFixed(1)}" x2="${W-pad}" y2="${(H-pad-f*(H-pad*2)).toFixed(1)}" stroke="#2a313c"/>`).join('');
+  $('#chart').innerHTML=grid+line('bad','#f0846b')+line('good','#5ad19a')+moodPath+labels;
+
+  let heat='';
+  lastNDays(14).forEach(d=>{const k=dateKey(d);let g=0;state.habits.forEach(h=>{if(h.type==='good'&&state.logs[k]&&state.logs[k][h.id])g++;});const lvl=g===0?'':g===1?'l1':g===2?'l2':'l3';heat+=`<div class="cell ${lvl}"></div>`;});
+  $('#heat').innerHTML=heat;
+
+  const avg=moodAverage(state.moods,7);
+  const eVals=lastNDays(7).map(d=>state.moods[dateKey(d)]).filter(m=>m&&m.energy).map(m=>m.energy);
+  const sVals=lastNDays(7).map(d=>state.moods[dateKey(d)]).filter(m=>m&&m.sleep!=null).map(m=>m.sleep);
+  if(avg==null)$('#moodSummary').textContent='No check-ins yet — log how you feel on the Check-in tab to see patterns here.';
+  else{
+    const eAvg=eVals.length?Math.round(eVals.reduce((a,b)=>a+b,0)/eVals.length*10)/10:'—';
+    const sAvg=sVals.length?Math.round(sVals.reduce((a,b)=>a+b,0)/sVals.length*10)/10:'—';
+    $('#moodSummary').textContent=`7-day averages — mood ${avg}/5, energy ${eAvg}/5, sleep ${sAvg}h. The blue dotted line on the chart above tracks your mood.`;
+  }
+}
+
+// ---- capture ----
+function renderCaptures(){
+  const el=$('#capList');
+  if(!state.captures.length){el.innerHTML='';return;}
+  el.innerHTML=state.captures.map((c,i)=>`<div class="cap-item"><span>${escapeHtml(c)}</span><span class="x" data-cap="${i}">✕</span></div>`).join('');
+}
+
+// ---- mood / checkin ----
+['energy','focus','sleep'].forEach(id=>{const el=$('#'+id);el.addEventListener('input',()=>$('#'+id+'Val').textContent=el.value);});
+let selMood=null;
+$('#moodRow').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;selMood=+b.dataset.m;$$('#moodRow button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');});
+$('#medsYes').onclick=()=>{pendingMeds=true;$('#medsYes').className='btn';$('#medsNo').className='btn ghost';};
+$('#medsNo').onclick=()=>{pendingMeds=false;$('#medsNo').className='btn';$('#medsYes').className='btn ghost';};
+$('#saveCheckin').onclick=()=>{
+  const k=todayKey();
+  state.moods[k]={mood:selMood,energy:+$('#energy').value,focus:+$('#focus').value,sleep:+$('#sleep').value,meds:pendingMeds};
+  save();
+  $('#checkinStatus').textContent='Saved ✓ — see patterns on the Insights tab.';
+  addPoints(5,'Check-in saved · +5 XP');
+};
+function loadCheckin(){
+  const m=state.moods[todayKey()];if(!m)return;
+  if(m.mood){selMood=m.mood;$$('#moodRow button').forEach(x=>x.classList.toggle('sel',+x.dataset.m===m.mood));}
+  if(m.energy){$('#energy').value=m.energy;$('#energyVal').textContent=m.energy;}
+  if(m.focus){$('#focus').value=m.focus;$('#focusVal').textContent=m.focus;}
+  if(m.sleep!=null){$('#sleep').value=m.sleep;$('#sleepVal').textContent=m.sleep;}
+}
+
+// ---- routine ----
+function renderRoutine(){
+  const arr=state.routines[curRoutine]||[];
+  const el=$('#routineSteps');
+  if(!arr.length){el.innerHTML='<div class="empty">No steps yet — add the first one below.</div>';return;}
+  el.innerHTML=arr.map((s,i)=>`<div class="rstep ${s.done?'done':''}"><span class="sc" data-rdone="${i}">✓</span><span>${escapeHtml(s.t)}</span><span class="x" data-rdel="${i}">✕</span></div>`).join('');
+}
+$('#routineTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;curRoutine=b.dataset.r;$$('#routineTabs button').forEach(x=>{x.className='';});b.className='sel good';b.style.cssText='color:var(--accent);border-color:var(--accent);background:#2a2113';$$('#routineTabs button').forEach(x=>{if(x!==b)x.style.cssText='';});renderRoutine();});
+$('#routineAdd').onclick=()=>{const v=$('#routineInput').value.trim();if(!v)return;state.routines[curRoutine].push({t:v,done:false});$('#routineInput').value='';save();renderRoutine();};
+
+// ---- timer + ring ----
+let tInt=null,tLeft=300,tTotal=300;
+const RING_LEN=2*Math.PI*88;
+$('#ring').style.strokeDasharray=RING_LEN;
+function showTimer(){
+  const m=String(Math.floor(tLeft/60)).padStart(2,'0'),s=String(tLeft%60).padStart(2,'0');
+  $('#timer').textContent=m+':'+s;$('#focusTimer').textContent=m+':'+s;
+  $('#ring').style.strokeDashoffset=RING_LEN*(1-tLeft/tTotal);
+}
+function tick(){tLeft--;showTimer();if(tLeft<=0){clearInterval(tInt);tInt=null;$('#timerStart').textContent='Start';toast('⏰ Time! Keep going? 💪');addPoints(5,'');tLeft=tTotal;showTimer();if($('#focusOverlay').classList.contains('show')){/*stay*/}}}
+$('#timerStart').onclick=function(){if(tInt){clearInterval(tInt);tInt=null;this.textContent='Start';return;}this.textContent='Pause';tInt=setInterval(tick,1000);};
+$('#timerReset').onclick=()=>{clearInterval(tInt);tInt=null;$('#timerStart').textContent='Start';tLeft=tTotal;showTimer();};
+$$('.pill[data-min]').forEach(p=>p.onclick=()=>{$$('.pill[data-min]').forEach(x=>x.classList.remove('on'));p.classList.add('on');clearInterval(tInt);tInt=null;$('#timerStart').textContent='Start';tTotal=tLeft=+p.dataset.min*60;showTimer();});
+$('#focusMode').onclick=()=>{$('#focusOverlay').classList.add('show');if(!tInt){$('#timerStart').textContent='Pause';tInt=setInterval(tick,1000);}};
+$('#focusExit').onclick=()=>{$('#focusOverlay').classList.remove('show');};
+
+// ---- AI helpers ----
+async function callClaude(messages,maxTokens){
+  // In Claude's environment, no key is needed. On a self-hosted PWA, use saved key.
+  const headers={"Content-Type":"application/json"};
+  if(state.apiKey){headers["x-api-key"]=state.apiKey;headers["anthropic-version"]="2023-06-01";headers["anthropic-dangerous-direct-browser-access"]="true";}
+  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:maxTokens,messages})});
+  if(!r.ok)throw new Error('http '+r.status);
+  const data=await r.json();
+  return data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+$('#breakBtn').onclick=async function(){
+  const task=$('#taskInput').value.trim();if(!task){toast('Type a task first');return;}
+  const out=$('#steps');out.innerHTML='<div class="loading">Breaking it down…</div>';
+  try{
+    let txt=await callClaude([{role:"user",content:`I have ADHD and I'm struggling to start: "${task}". Break it into 4-6 tiny concrete first steps. The first step must be absurdly easy (under 2 min) to beat initiation paralysis. Respond ONLY with a JSON array of short strings, no preamble, no markdown.`}],1000);
+    txt=txt.replace(/```json|```/g,'').trim();
+    const steps=JSON.parse(txt);
+    out.innerHTML=steps.map((s,i)=>`<div class="step" data-i="${i}"><span class="sc">✓</span><span>${escapeHtml(s)}</span></div>`).join('');
+    out.querySelectorAll('.step').forEach(st=>st.querySelector('.sc').onclick=()=>{st.classList.toggle('done');if([...out.querySelectorAll('.step')].every(x=>x.classList.contains('done'))){toast('All done — you did it! 🎉');addPoints(15,'');}});
+  }catch(e){
+    out.innerHTML='<div class="empty">'+(state.apiKey?'Couldn\'t reach the AI just now. ':'No API key set (add one in More → AI settings). ')+'Meanwhile: write the very first <b>physical</b> action — "open the laptop", "find the form" — and do only that. Then the next one reveals itself.</div>';
+  }
+};
+const nudges=["Set a 2-minute timer and stop when it rings. That's allowed.","Do the worst possible version. You can fix it later — or not.","Tell yourself you're just 'looking at it', not doing it.","Pick the single easiest sub-task and ignore the rest.","Stand up and physically touch the first object involved.","Narrate the first step out loud, then do that one thing."];
+$('#lowerBarCard').onclick=()=>{$('#lowerBar').textContent=nudges[Math.floor(Math.random()*nudges.length)];};
+$('#coachBtn').onclick=async function(){
+  const q=$('#coachInput').value.trim();if(!q){toast('Tell it what\'s up first');return;}
+  const out=$('#coachOut');out.innerHTML='<div class="loading">Thinking with you…</div>';
+  try{
+    const txt=await callClaude([{role:"user",content:`You are a warm, concise ADHD coach. The person said: "${q}". Give a short, validating, practical reply under 130 words. No lectures, at most 3 short points. Focus on one concrete next action.`}],600);
+    out.innerHTML=`<div class="ritual" style="cursor:default"><p style="color:var(--ink)">${escapeHtml(txt).replace(/\n/g,'<br>')}</p></div>`;
+  }catch(e){
+    out.innerHTML='<div class="empty">'+(state.apiKey?'Couldn\'t reach the coach right now. ':'No API key set (add one in More → AI settings). ')+'One trick that almost always helps: name the very next physical action and shrink it until it feels almost too easy to bother with. Then do that.</div>';
+  }
+};
+
+// ---- settings / data ----
+$('#saveKey').onclick=()=>{state.apiKey=$('#apiKey').value.trim();save();toast(state.apiKey?'Key saved on this device ✓':'Key cleared');};
+$('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='anchor-backup-'+todayKey()+'.json';a.click();URL.revokeObjectURL(a.href);toast('Backup downloaded');};
+$('#importBtn').onclick=()=>$('#importFile').click();
+$('#importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{state=Object.assign(state,JSON.parse(r.result));save();toast('Imported ✓');renderAll();}catch(err){toast('Invalid file');}};r.readAsText(f);};
+$('#wipeBtn').onclick=()=>{if(confirm('Erase all Anchor data on this device? This cannot be undone.')){state={habits:[],logs:{},points:0,captures:[],moods:{},routines:{morning:[],evening:[]},apiKey:''};save();location.reload();}};
+
+// ---- add habit / emoji ----
+$('#addHabit').onclick=()=>{const n=$('#newHabit').value.trim();if(!n){toast('Name it first');return;}state.habits.push({id:'h'+Date.now(),name:n,emoji:newEmoji,type:newT});$('#newHabit').value='';save();renderHabits();toast('Habit added ✓');};
+$$('#newType button').forEach(b=>b.onclick=()=>{newT=b.dataset.t;$$('#newType button').forEach(x=>x.className=x.dataset.t===newT?'sel '+newT:'');});
+function renderEmoji(){$('#emojiPick').innerHTML=EMOJIS.map(e=>`<button data-e="${e}" class="${e===newEmoji?'sel':''}">${e}</button>`).join('');}
+$('#capAdd').onclick=()=>{const v=$('#capInput').value.trim();if(!v)return;state.captures.unshift(v);$('#capInput').value='';save();renderCaptures();};
+$('#capInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#capAdd').click();});
+
+// ---- delegated clicks ----
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-check]');if(c){toggle(c.dataset.check);return;}
+  const d=e.target.closest('[data-del]');if(d){state.habits=state.habits.filter(h=>h.id!==d.dataset.del);save();renderHabits();toast('Removed');return;}
+  const em=e.target.closest('#emojiPick button');if(em){newEmoji=em.dataset.e;renderEmoji();return;}
+  const cap=e.target.closest('[data-cap]');if(cap){state.captures.splice(+cap.dataset.cap,1);save();renderCaptures();return;}
+  const rd=e.target.closest('[data-rdone]');if(rd){const i=+rd.dataset.rdone;const s=state.routines[curRoutine][i];s.done=!s.done;if(s.done)addPoints(0,'');save();renderRoutine();const all=state.routines[curRoutine].every(x=>x.done);if(all&&state.routines[curRoutine].length){addPoints(ROUTINE_BONUS,'Routine complete · +15 XP 🌅');}return;}
+  const rdel=e.target.closest('[data-rdel]');if(rdel){state.routines[curRoutine].splice(+rdel.dataset.rdel,1);save();renderRoutine();return;}
+});
+
+// ---- tabs ----
+$$('.tab').forEach(t=>t.onclick=()=>{
+  $$('.tab').forEach(x=>x.classList.remove('active'));
+  $$('section').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');$('#'+t.dataset.tab).classList.add('active');
+  window.scrollTo(0,0);
+  if(t.dataset.tab==='insights')renderInsights();
+});
+
+// ---- date / tagline ----
+function setHeader(){
+  const d=new Date();
+  $('#todayDate').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  const h=d.getHours();
+  $('#tagline').textContent=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+}
+
+function renderAll(){renderHabits();renderEmoji();renderCaptures();renderRoutine();loadCheckin();refreshLevel();showTimer();if(state.apiKey)$('#apiKey').value=state.apiKey;}
+
+// ---- init ----
+(async()=>{
+  setHeader();
+  await load();
+  renderAll();
+  // register service worker (only works when served over http/https, not file://)
+  if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+    try{await navigator.serviceWorker.register('./sw.js');}catch(e){}
+  }
+})();
+</script>
+</body>
+</html>
